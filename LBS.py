@@ -127,6 +127,34 @@ class LBS:
                     return True
         return False
 
+    def find_winning_move(self, isLeft):
+        """
+        find_winning_move finds a winning move based on whose turn it is and the current board position
+        :param isLeft: whether it is the left player's turn
+        :return: the winning board position
+        """
+        if isLeft:
+            for child in self.left_children:
+                if child.outcome_class in ['L', 'P']:
+                    return child.board
+        else:
+            for child in self.right_children:
+                if child.outcome_class in ['R', 'P']:
+                    return child.board
+
+    def find_legal_move(self, isLeft):
+        """
+        find_legal_move finds a legal move based  on whose turn it is and the current board position
+        :param isLeft: whether it is the left player's turn
+        :return: the legal board position
+        """
+        if isLeft:
+            for child in self.left_children:
+                return child.board
+        else:
+            for child in self.right_children:
+                return child.board
+
     def define_outcome_class(self):
         """
         define_outcome_class defines the outcome class of a game as either L (positive), R (negative), N (fuzzy), or
@@ -148,8 +176,8 @@ class LBS:
         """
         display_LBS prints the board out
         """
-        for row in range(self.x):
-            for col in range(self.y):
+        for row in range(self.y):
+            for col in range(self.x):
                 print(self.board[row][col], end='')
             print()
 
@@ -160,53 +188,149 @@ def main():
     while True:
         response = input("Please select 'play', 'analyze', or 'quit': ")
         if response == 'play':
-            filename = input('Input the name of the file containing the LBS board: ')
-            with open(filename) as file:
-                rows = 0
-                board = []
-                for line in file:
-                    rows += 1
-                    cols = 0
-                    row = []
-                    for ch in line:
-                        cols += 1
-                        if ch in ['B', 'R', 'G', '-']:
-                            row.append(ch)
-                    board.append(row)
-            game = LBS(cols, rows, board)
-            while True:
-                if not game.left_can_move():
-                    game.display_LBS()
-                    print('Game over, second player won')
-                    break
-                print('First players turn:')
-                game.display_LBS()
+            gameType = input("Please select whether you would like to play against the 'computer' or an 'opponent': ")
+            if gameType == 'opponent':
+                filename = input('Input the name of the file containing the LBS board: ')
+                with open(filename) as file:
+                    rows = 0
+                    board = []
+                    for line in file:
+                        rows += 1
+                        cols = 0
+                        row = []
+                        for ch in line:
+                            cols += 1
+                            if ch in ['B', 'R', 'G', '-']:
+                                row.append(ch)
+                        board.append(row)
+                game = LBS(cols, rows, board)
                 while True:
-                    row_choice = int(input('Enter row number: ')) - 1
-                    col_choice = int(input('Enter col number: ')) - 1
-                    print()
-                    if row_choice > rows or col_choice > cols or game.board[row_choice][col_choice] in ['-', 'R']:
-                        print('Invalid move, try again')
-                    else:
-                        game.board[row_choice][col_choice] = '-'
-                        game.drop_blocks()
+                    if not game.left_can_move():
+                        game.display_LBS()
+                        print('Game over, second player won')
                         break
-                if not game.right_can_move():
+                    print('First players turn:')
                     game.display_LBS()
-                    print('Game over, first player won')
-                    break
-                print('Second players turn:')
-                game.display_LBS()
-                while True:
-                    row_choice = int(input('Enter row number: ')) - 1
-                    col_choice = int(input('Enter col number: ')) - 1
-                    print()
-                    if row_choice > rows or col_choice > cols or game.board[row_choice][col_choice] in ['-', 'B']:
-                        print('Invalid move, try again')
-                    else:
-                        game.board[row_choice][col_choice] = '-'
-                        game.drop_blocks()
+                    while True:
+                        row_choice = int(input('Enter row number: ')) - 1
+                        col_choice = int(input('Enter col number: ')) - 1
+                        print()
+                        if row_choice > rows or col_choice > cols or game.board[row_choice][col_choice] in ['-', 'R']:
+                            print('Invalid move, try again')
+                        else:
+                            game.board[row_choice][col_choice] = '-'
+                            game.drop_blocks()
+                            break
+                    if not game.right_can_move():
+                        game.display_LBS()
+                        print('Game over, first player won')
                         break
+                    print('Second players turn:')
+                    game.display_LBS()
+                    while True:
+                        row_choice = int(input('Enter row number: ')) - 1
+                        col_choice = int(input('Enter col number: ')) - 1
+                        print()
+                        if row_choice > rows or col_choice > cols or game.board[row_choice][col_choice] in ['-', 'B']:
+                            print('Invalid move, try again')
+                        else:
+                            game.board[row_choice][col_choice] = '-'
+                            game.drop_blocks()
+                            break
+            elif gameType == 'computer':
+                filename = input('Input the name of the file containing the LBS board: ')
+                with open(filename) as file:
+                    rows = 0
+                    board = []
+                    for line in file:
+                        rows += 1
+                        cols = 0
+                        row = []
+                        for ch in line:
+                            cols += 1
+                            if ch in ['B', 'R', 'G', '-']:
+                                row.append(ch)
+                        board.append(row)
+                game = LBS(cols, rows, board)
+                print("Would you like to play 'first' or 'second': ")
+                while True:
+                    response = input('> ')
+                    if response == 'first':
+                        isFirst = True
+                        break
+                    elif response == 'second':
+                        isFirst = False
+                        break
+                    else:
+                        print("Response not recognized")
+                while True:
+                    if not game.left_can_move():
+                        game.display_LBS()
+                        if isFirst:
+                            print('Game over, computer won')
+                        else:
+                            print('Game over, you won')
+                        break
+                    if isFirst:
+                        print('First players turn:')
+                        game.display_LBS()
+                        while True:
+                            row_choice = int(input('Enter row number: ')) - 1
+                            col_choice = int(input('Enter col number: ')) - 1
+                            print()
+                            if row_choice > rows or col_choice > cols or game.board[row_choice][col_choice] in ['-', 'R']:
+                                print('Invalid move, try again')
+                            else:
+                                game.board[row_choice][col_choice] = '-'
+                                game.drop_blocks()
+                                break
+                    else:
+                        print("Computer's turn:")
+                        game.display_LBS()
+                        print()
+                        board_copy = [row[:] for row in game.board]
+                        game_copy = LBS(game.x, game.y, board_copy)
+                        game_copy.create_tree()
+                        game_copy.define_outcome_class()
+                        if game.outcome_class in ['N', 'L']:
+                            game.board = game_copy.find_winning_move(True)
+                        else:
+                            game.board = game_copy.find_legal_move(True)
+                    if not game.right_can_move():
+                        game.display_LBS()
+                        if isFirst:
+                            print('Game over, you won')
+                        else:
+                            print('Game over, computer won')
+                        break
+                    if not isFirst:
+                        print('Second players turn:')
+                        game.display_LBS()
+                        while True:
+                            row_choice = int(input('Enter row number: ')) - 1
+                            col_choice = int(input('Enter col number: ')) - 1
+                            print()
+                            if row_choice > rows or col_choice > cols or game.board[row_choice][col_choice] in ['-', 'B']:
+                                print('Invalid move, try again')
+                            else:
+                                game.board[row_choice][col_choice] = '-'
+                                game.drop_blocks()
+                                break
+                    else:
+                        print("Computer's turn:")
+                        game.display_LBS()
+                        print()
+                        board_copy = [row[:] for row in game.board]
+                        game_copy = LBS(game.x, game.y, board_copy)
+                        game_copy.create_tree()
+                        game_copy.define_outcome_class()
+                        if game.outcome_class in ['N', 'R']:
+                            game.board = game_copy.find_winning_move(False)
+                        else:
+                            game.board = game_copy.find_legal_move(False)
+            else:
+                print('Response not recognized')
+                return
         elif response == 'analyze':
             filename = input('Input the name of the file containing the LBS board: ')
             with open(filename) as file:
@@ -228,8 +352,8 @@ def main():
             stop = timeit.default_timer()
             game.display_LBS()
             print()
-            print('Outcome class', game.outcome_class)
-            print('Runtime:', stop - start)
+            print('Outcome class:', game.outcome_class)
+            print('Analysis time:', stop - start)
         elif response == 'quit':
             return
         else:
